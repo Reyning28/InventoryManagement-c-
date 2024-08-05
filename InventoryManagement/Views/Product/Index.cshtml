@@ -1,0 +1,27 @@
+﻿@model IEnumerable<InventoryManagement.Models.Product>
+
+<h1>Products</h1>
+<a asp-controller="Product" asp-action="Create">Create New</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>
+                        <a asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
