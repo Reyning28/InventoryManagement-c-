@@ -1,14 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using InventoryManagement.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using InventoryManagement.Domain.Entities;
-using InventoryManagement.Infraestructure;
-using InventoryManagement.Web.ViewModels.Products;
-
 namespace InventoryManagement.Controllers
 {
     public class ProductController : Controller
