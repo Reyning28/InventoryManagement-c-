@@ -1,12 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace InventoryManagement.Models
+﻿namespace InventoryManagement.Api.Dtos.Products
 {
-    public class Product
+    public class CreateProduct
     {
-        public int Id { get; set; }
-
         //[Required]
         public string? Name { get; set; }
 

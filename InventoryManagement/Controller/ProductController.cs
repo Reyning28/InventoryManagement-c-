@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using InventoryManagement.Data;
+
 using InventoryManagement.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using InventoryManagement.Domain.Entities;
+using InventoryManagement.Infraestructure;
+using InventoryManagement.Web.ViewModels.Products;
 
 namespace InventoryManagement.Controllers
 {
@@ -33,15 +36,23 @@ namespace InventoryManagement.Controllers
         // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Price,Stock,CategoryId")] Product model)
+        public async Task<IActionResult> Create([Bind("Name,Price,Stock,CategoryId")] CreateProduct model)
         {
             if (ModelState.IsValid)
             {
-                _context.Products.Add(model);
+                var productDb = new Product
+                {
+                    Name = model.Name,
+                    Price = model.Price,
+                    Stock = model.Stock,
+                    CategoryId = model.CategoryId
+                };
+
+                _context.Products.Add(productDb);
                 await _context.SaveChangesAsync();
 
                 // Verificar el Id del producto recién creado
-                Console.WriteLine($"Producto creado con Id: {model.Id}");
+                Console.WriteLine($"Producto creado con Id: {productDb.Id}");
 
                 return RedirectToAction(nameof(Index));
             }
@@ -58,20 +69,29 @@ namespace InventoryManagement.Controllers
                 return NotFound();
             }
 
-            var model = await _context.Products.FindAsync(id);
-            if (model == null)
+            var dbitem = await _context.Products.FindAsync(id);
+            if (dbitem == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name", model.CategoryId);
-            return View(model);
+            var vm = new EditProduct
+            {
+                Id = dbitem.Id,
+                Name = dbitem.Name,
+                Price = dbitem.Price,
+                Stock = dbitem.Stock,
+                CategoryId = dbitem.CategoryId
+            };
+
+            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name", dbitem.CategoryId);
+            return View(vm);
         }
 
         // POST: Product/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Stock,CategoryId")] Product model)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Stock,CategoryId")] EditProduct model)
         {
             if (id != model.Id)
             {
@@ -82,7 +102,18 @@ namespace InventoryManagement.Controllers
             {
                 try
                 {
-                    _context.Products.Update(model);
+                    var dbitem = await _context.Products.FindAsync(id);
+                    if (dbitem == null)
+                    {
+                        return NotFound();
+                    }
+
+                    dbitem.Name = model.Name;
+                    dbitem.Price = model.Price;
+                    dbitem.Stock = model.Stock;
+                    dbitem.CategoryId = model.CategoryId;
+
+                    _context.Products.Update(dbitem);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace InventoryManagement.Models
+namespace InventoryManagement.Domain.Entities
 {
     public class Category
     {

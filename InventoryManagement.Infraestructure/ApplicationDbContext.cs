@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using InventoryManagement.Models;
 
-namespace InventoryManagement.Data
+using InventoryManagement.Domain.Entities;
+
+namespace InventoryManagement.Infraestructure
 {
     public class ApplicationDbContext : DbContext
     {
