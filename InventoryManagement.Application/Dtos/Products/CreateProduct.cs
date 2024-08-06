@@ -1,4 +1,4 @@
-﻿namespace InventoryManagement.Api.Dtos.Products
+﻿namespace InventoryManagement.Application.Dtos.Products
 {
     public class CreateProduct
     {

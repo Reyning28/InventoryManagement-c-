@@ -1,29 +1,38 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InventoryManagement.Application.Dtos.Products;
+using InventoryManagement.Application.Services;
+using InventoryManagement.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
+
 namespace InventoryManagement.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ProductService _service;
+        private readonly CategoryService _categoryService;
 
-        public ProductController(ApplicationDbContext context)
+        public ProductController(ProductService service, CategoryService categoryService)
         {
-            _context = context;
+            _service = service;
+            _categoryService = categoryService;
         }
 
         // GET: Product
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            var products = await _service.GetProducts();
+            return View(products);
         }
 
         // GET: Product/Create
         public async Task<IActionResult> Create()
         {
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+            var categories = await _categoryService.GetCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Name");
+            ViewData["Title"] = "Create Product";
             return View();
         }
 
@@ -34,24 +43,12 @@ namespace InventoryManagement.Controllers
         {
             if (ModelState.IsValid)
             {
-                var productDb = new Product
-                {
-                    Name = model.Name,
-                    Price = model.Price,
-                    Stock = model.Stock,
-                    CategoryId = model.CategoryId
-                };
-
-                _context.Products.Add(productDb);
-                await _context.SaveChangesAsync();
-
-                // Verificar el Id del producto recién creado
-                Console.WriteLine($"Producto creado con Id: {productDb.Id}");
-
+                await _service.CreateProduct(model);
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+            var categories = await _categoryService.GetCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Name");
             return View(model);
         }
 
@@ -63,22 +60,24 @@ namespace InventoryManagement.Controllers
                 return NotFound();
             }
 
-            var dbitem = await _context.Products.FindAsync(id);
-            if (dbitem == null)
+            var product = await _service.GetProduct(id.Value);
+            if (product == null)
             {
                 return NotFound();
             }
 
             var vm = new EditProduct
             {
-                Id = dbitem.Id,
-                Name = dbitem.Name,
-                Price = dbitem.Price,
-                Stock = dbitem.Stock,
-                CategoryId = dbitem.CategoryId
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Stock = product.Stock,
+                CategoryId = product.CategoryId
             };
 
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name", dbitem.CategoryId);
+            var categories = await _categoryService.GetCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", product.CategoryId);
+            ViewData["Title"] = "Edit Product";
             return View(vm);
         }
 
@@ -96,23 +95,11 @@ namespace InventoryManagement.Controllers
             {
                 try
                 {
-                    var dbitem = await _context.Products.FindAsync(id);
-                    if (dbitem == null)
-                    {
-                        return NotFound();
-                    }
-
-                    dbitem.Name = model.Name;
-                    dbitem.Price = model.Price;
-                    dbitem.Stock = model.Stock;
-                    dbitem.CategoryId = model.CategoryId;
-
-                    _context.Products.Update(dbitem);
-                    await _context.SaveChangesAsync();
+                    await _service.EditProduct(model);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Products.Any(e => e.Id == model.Id))
+                    if (await _service.GetProduct(id) == null)
                     {
                         return NotFound();
                     }
@@ -124,7 +111,8 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name", model.CategoryId);
+            var categories = await _categoryService.GetCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", model.CategoryId);
             return View(model);
         }
     }
