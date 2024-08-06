@@ -1,7 +1,6 @@
 using Employeees.Domain.Entities;
 using Employees.Web.Persistence;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Api.Controllers
 {
